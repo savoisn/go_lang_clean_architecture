@@ -19,12 +19,16 @@ func addTaskToPlanning(planning entity.Planning, newTask entity.Task) (err error
 func isTaskOverlapping(newTask entity.Task, task entity.Task) bool {
 	isAfter := (newTask.StartDate.After(task.StartDate) && newTask.StartDate.Before(task.EndDate))
 	isBefore := (newTask.EndDate.Before(task.EndDate) && newTask.EndDate.After(task.StartDate))
-	isAround := false
-	isInside := false
-	return isAfter || isBefore || isAround || isInside
+	isAround := (newTask.StartDate.Before(task.StartDate) && newTask.EndDate.After(task.EndDate))
+	isInside := isAfter && isBefore
+	isStartingAtSameTime := newTask.StartDate.Equal(task.StartDate)
+	isEndingAtSameTime := newTask.EndDate.Equal(task.EndDate)
+	// fmt.Printf("isAfter %t, isBefore %t, isAround %t \n", isAfter, isBefore, isAround)
+
+	return isAfter || isBefore || isAround || isInside || isStartingAtSameTime || isEndingAtSameTime
 }
 
-func isTaskAfterTask() {
+func isTaskBeginBefore() {
 
 }
 

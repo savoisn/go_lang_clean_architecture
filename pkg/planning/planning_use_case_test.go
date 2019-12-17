@@ -9,6 +9,16 @@ import (
 	"gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/entity"
 )
 
+var (
+	agent         = entity.Agent{Name: "Mathilde"}
+	startDate     = time.Now()
+	endDate       = startDate.AddDate(0, 0, 7)
+	planning      = entity.Planning{Agent: agent, StartDate: startDate, EndDate: endDate}
+	taskStartDate = time.Now()
+	taskEndDate   = startDate.AddDate(0, 0, 1)
+	taskType      = "Manuelle"
+)
+
 func TestCreationAgent(t *testing.T) {
 	// var agent entity.Agent = entity.NewAgent("Nicolas")
 	agent := entity.Agent{Name: "Nicolas"}
@@ -18,11 +28,11 @@ func TestCreationAgent(t *testing.T) {
 
 func TestPlanningCreation(t *testing.T) {
 	agent := entity.Agent{Name: "Diane"}
-	fmt.Printf("%+v\n", agent)
+	// fmt.Printf("%+v\n", agent)
 	startDate := time.Now()
-	fmt.Printf("%s\n", startDate)
+	// fmt.Printf("%s\n", startDate)
 	endDate := startDate.AddDate(0, 0, 7)
-	fmt.Printf("%+s\n", endDate)
+	// fmt.Printf("%+s\n", endDate)
 	planning := entity.Planning{Agent: agent, StartDate: startDate, EndDate: endDate}
 
 	assert.Equal(t, "Diane", planning.Agent.Name)
@@ -31,22 +41,11 @@ func TestPlanningCreation(t *testing.T) {
 }
 
 func TestAddTaskToPlanning(t *testing.T) {
-
-	agent := entity.Agent{Name: "Mathilde"}
-	startDate := time.Now()
-	endDate := startDate.AddDate(0, 0, 7)
-	planning := entity.Planning{Agent: agent, StartDate: startDate, EndDate: endDate}
-
-	taskStartDate := time.Now()
-	taskEndDate := startDate.AddDate(0, 0, 1)
-	taskType := "Manuelle"
-
 	task := entity.Task{
 		Description: "sortir les poubelles",
 		StartDate:   taskStartDate,
 		EndDate:     taskEndDate,
 		Type:        taskType}
-
 	assert.Equal(t, 0, len(planning.Tasks))
 	err, planning := addTaskToPlanning(planning, task)
 
@@ -57,13 +56,6 @@ func TestAddTaskToPlanning(t *testing.T) {
 }
 
 func TestAddTaskToPlanningThatStartDateOverlapsPlanningTask(t *testing.T) {
-
-	agent := entity.Agent{Name: "Mathilde"}
-	startDate := time.Now()
-	endDate := startDate.AddDate(0, 0, 7)
-	planning := entity.Planning{Agent: agent, StartDate: startDate, EndDate: endDate}
-
-	taskType := "Manuelle"
 
 	task1 := entity.Task{
 		Description: "sortir les poubelles",
@@ -91,13 +83,6 @@ func TestAddTaskToPlanningThatStartDateOverlapsPlanningTask(t *testing.T) {
 
 func TestAddTaskToPlanningThatEndDateOverlapsPlanningTask(t *testing.T) {
 
-	agent := entity.Agent{Name: "Éloïse"}
-	startDate := time.Now()
-	endDate := startDate.AddDate(0, 0, 7)
-	planning := entity.Planning{Agent: agent, StartDate: startDate, EndDate: endDate}
-
-	taskType := "Manuelle"
-
 	task1 := entity.Task{
 		Description: "sortir les poubelles",
 		StartDate:   startDate.AddDate(0, 0, 2),
@@ -107,6 +92,135 @@ func TestAddTaskToPlanningThatEndDateOverlapsPlanningTask(t *testing.T) {
 		Description: "tondre la pelouse",
 		StartDate:   startDate.AddDate(0, 0, 1),
 		EndDate:     startDate.AddDate(0, 0, 3),
+		Type:        taskType}
+
+	assert.Equal(t, 0, len(planning.Tasks))
+	err, planning := addTaskToPlanning(planning, task1)
+
+	assert.Nil(t, err)
+
+	err, planning = addTaskToPlanning(planning, task2)
+
+	assert.NotNil(t, err)
+
+	assert.Equal(t, 1, len(planning.Tasks))
+	assert.Equal(t, task1, planning.Tasks[0])
+}
+func TestAddTaskToPlanningThatIsAroundAnotherTask(t *testing.T) {
+
+	task1 := entity.Task{
+		Description: "sortir les poubelles",
+		StartDate:   startDate.AddDate(0, 0, 2),
+		EndDate:     startDate.AddDate(0, 0, 4),
+		Type:        taskType}
+	task2 := entity.Task{
+		Description: "tondre la pelouse",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 5),
+		Type:        taskType}
+
+	assert.Equal(t, 0, len(planning.Tasks))
+	err, planning := addTaskToPlanning(planning, task1)
+
+	assert.Nil(t, err)
+
+	err, planning = addTaskToPlanning(planning, task2)
+
+	assert.NotNil(t, err)
+
+	assert.Equal(t, 1, len(planning.Tasks))
+	assert.Equal(t, task1, planning.Tasks[0])
+}
+
+func TestAddTaskToPlanningThatIsInsideAnotherTask(t *testing.T) {
+
+	task1 := entity.Task{
+		Description: "sortir les poubelles",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 5),
+		Type:        taskType}
+	task2 := entity.Task{
+		Description: "tondre la pelouse",
+		StartDate:   startDate.AddDate(0, 0, 2),
+		EndDate:     startDate.AddDate(0, 0, 4),
+		Type:        taskType}
+
+	assert.Equal(t, 0, len(planning.Tasks))
+	err, planning := addTaskToPlanning(planning, task1)
+
+	assert.Nil(t, err)
+
+	err, planning = addTaskToPlanning(planning, task2)
+
+	assert.NotNil(t, err)
+
+	assert.Equal(t, 1, len(planning.Tasks))
+	assert.Equal(t, task1, planning.Tasks[0])
+}
+
+func TestAddTaskToPlanningThatIsAfterAnotherTask(t *testing.T) {
+
+	task1 := entity.Task{
+		Description: "sortir les poubelles",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 2),
+		Type:        taskType}
+	task2 := entity.Task{
+		Description: "tondre la pelouse",
+		StartDate:   startDate.AddDate(0, 0, 3),
+		EndDate:     startDate.AddDate(0, 0, 4),
+		Type:        taskType}
+
+	assert.Equal(t, 0, len(planning.Tasks))
+	err, planning := addTaskToPlanning(planning, task1)
+
+	assert.Nil(t, err)
+
+	err, planning = addTaskToPlanning(planning, task2)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, 2, len(planning.Tasks))
+	assert.Equal(t, task1, planning.Tasks[0])
+}
+
+func TestAddTaskToPlanningThatIsBeforeAnotherTask(t *testing.T) {
+
+	task1 := entity.Task{
+		Description: "sortir les poubelles",
+		StartDate:   startDate.AddDate(0, 0, 3),
+		EndDate:     startDate.AddDate(0, 0, 4),
+		Type:        taskType}
+	task2 := entity.Task{
+		Description: "tondre la pelouse",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 2),
+		Type:        taskType}
+
+	assert.Equal(t, 0, len(planning.Tasks))
+	err, planning := addTaskToPlanning(planning, task1)
+
+	assert.Nil(t, err)
+
+	err, planning = addTaskToPlanning(planning, task2)
+
+	assert.Nil(t, err)
+
+	assert.Equal(t, 2, len(planning.Tasks))
+	assert.Equal(t, task1, planning.Tasks[0])
+}
+
+func TestAddTaskToPlanningThatBeginsAtTheSameTimeAnotherTask(t *testing.T) {
+
+	task1 := entity.Task{
+		Description: "sortir les poubelles",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 2),
+		Type:        taskType}
+	task2 := entity.Task{
+		Description: "tondre la pelouse",
+		StartDate:   startDate.AddDate(0, 0, 1),
+		EndDate:     startDate.AddDate(0, 0, 2),
 		Type:        taskType}
 
 	assert.Equal(t, 0, len(planning.Tasks))
