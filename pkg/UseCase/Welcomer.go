@@ -1,4 +1,4 @@
-package use_case
+package UseCase
 
 type Welcomer struct {
 	persistor IPersister

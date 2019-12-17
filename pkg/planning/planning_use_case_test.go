@@ -1,4 +1,4 @@
-package planning_use_case
+package planning
 
 import (
 	"fmt"

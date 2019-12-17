@@ -1,35 +1,23 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/gin-gonic/gin"
-	infradb "gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/infra/file"
-	"gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/presentation"
+	"gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/UseCase"
+	db "gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/infra/db"
+	memory "gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/infra/memory"
+	"gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/infra/web"
+	planning "gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/planning"
 )
 
 func main() {
-	fmt.Println("Okapi V2")
 
-	fp := infradb.NewFilePersistor("Coucou")
-	fp.Persist("Coucou")
-	fp.Persist("Coucou")
-	fp.Persist("Coucou")
-	fp.Persist("Coucou")
-	fp.Persist("Coucou")
+	db_persistor := db.NewDbPersitor("host_name", 1234)
+	welcomer := UseCase.NewWelcomer(db_persistor)
+	//web := web.NewGinServer(welcomer)
 
-	for _, s := range fp.GetContent() {
-		fmt.Println(s)
-	}
-	presentation.Console()
+	inMemoryPersister := memory.NewInMemoryPersister()
+	planningUseCase := planning.NewPlanningUseCase(&inMemoryPersister)
+	web := web.NewGinServer(welcomer, planningUseCase)
 
-	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		// ControllerBoundary(RequestModel) -> UseCase -> Reply Result
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
+	web.StartServer()
 
 }

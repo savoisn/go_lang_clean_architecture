@@ -1,10 +1,26 @@
-package planning_use_case
+package planning
 
 import (
 	"errors"
 
 	"gitlab.talanlabs.com/okapi/OkapiPlanning/pkg/entity"
 )
+
+type PlanningUseCase struct {
+	persister PlanningPersister
+}
+
+func NewPlanningUseCase(p PlanningPersister) PlanningUseCase {
+	return PlanningUseCase{persister: p}
+}
+
+func (p PlanningUseCase) SavePlanning(planning entity.Planning) (error, entity.Planning) {
+	return p.persister.SavePlanning(planning)
+}
+
+func (p PlanningUseCase) GetPlannings() (error, []entity.Planning) {
+	return p.persister.GetPlannings()
+}
 
 func addTaskToPlanning(planning entity.Planning, newTask entity.Task) (err error, ret entity.Planning) {
 	err = isOverLapping(planning.Tasks, newTask)
@@ -26,10 +42,6 @@ func isTaskOverlapping(newTask entity.Task, task entity.Task) bool {
 	// fmt.Printf("isAfter %t, isBefore %t, isAround %t \n", isAfter, isBefore, isAround)
 
 	return isAfter || isBefore || isAround || isInside || isStartingAtSameTime || isEndingAtSameTime
-}
-
-func isTaskBeginBefore() {
-
 }
 
 func isOverLapping(tasks []entity.Task, newTask entity.Task) (err error) {
